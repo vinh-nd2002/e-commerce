@@ -3,3 +3,5 @@ thêm validate email, numberPhone, password, name...
 sửa lại thêm xử lý error, ErrorHandler trong file app vs middlewares
 
 sửa lại isBlocked user nếu như nó chưa kích hoạt tài khoản
+
+refactor service vs controller
