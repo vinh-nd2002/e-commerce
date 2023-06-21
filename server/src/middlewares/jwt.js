@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 
 const generateAccessToken = (uid, role) => {
-  return jwt.sign({ uid, role }, process.env.JWT_SECRET, { expiresIn: "10m" });
+  return jwt.sign({ uid, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 
 const generateRefreshToken = (uid) => {
