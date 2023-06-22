@@ -20,7 +20,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
   const newProduct = await Product.create(req.body);
 
-  const { createdAt, updateAt, __v, ...response } = newProduct.toObject();
+  const { createdAt, updatedAt, __v, ...response } = newProduct.toObject();
   return res.status(200).json({
     success: newProduct ? true : false,
     data: newProduct ? response : "Can't create product",
@@ -128,7 +128,8 @@ const deleteProductById = asyncHandler(async (req, res) => {
 
 const updateProductById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  if (!id || Object.keys(req.body) === 0) throw new Error("Missing input");
+  if (!id || Object.keys(req.body).length === 0)
+    throw new Error("Missing input");
 
   if (req.body && req.body.title) req.body.slug = slugifyTitle(req.body.title);
 
