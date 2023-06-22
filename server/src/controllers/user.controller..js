@@ -13,21 +13,21 @@ const register = asyncHandler(async (req, res) => {
 
   if (!firstName || !lastName || !email || !password || !numberPhone)
     return res.status(400).json({
-      message: "Thông tin nhập vào bị thiếu",
       status: false,
+      mes: "Missing inputs",
     });
 
   const user = await User.findOne({ email });
 
   if (user) {
-    throw new Error("Tài khoản đã tồn tại");
+    throw new Error("Account already exists");
   } else {
     const newUser = await User.create(req.body);
     return res.status(201).json({
       status: newUser ? true : false,
       mes: newUser
-        ? "Đăng ký tài khoản mới thành công"
-        : "Đăng ký tài khoản mới không thành công",
+        ? "New account registration successful"
+        : "New account registration failed",
     });
   }
 });
@@ -80,9 +80,7 @@ const login = asyncHandler(async (req, res) => {
       accessToken: accessToken,
     });
   } else {
-    throw new Error(
-      "Thông tin đăng nhập không chính xác. Vui lòng kiểm tra lại"
-    );
+    throw new Error("Login information is incorrect. Please check again");
   }
 });
 
@@ -204,7 +202,7 @@ const resetPassword = asyncHandler(async (req, res) => {
   await user.save();
   return res.status(200).json({
     success: user ? true : false,
-    mess: user
+    mes: user
       ? "Password has been changed successfully"
       : "Change of password failed",
   });
@@ -232,7 +230,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: userUpdated ? true : false,
-    data: userUpdated ? userUpdated : "Update user failed",
+    mes: userUpdated ? "User update successful" : "Update user failed",
   });
 });
 const deleteUserById = asyncHandler(async (req, res) => {
@@ -257,7 +255,7 @@ const updateUserByAmin = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: userUpdated ? true : false,
-    data: userUpdated ? userUpdated : "Update user failed",
+    mes: userUpdated ? "User update successful" : "Update user failed",
   });
 });
 
