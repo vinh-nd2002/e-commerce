@@ -1,6 +1,7 @@
 const { BlogCategory } = require("./../models");
 const asyncHandler = require("express-async-handler");
 const slugifyTitle = require("./../utils/slug");
+const mongoose = require("mongoose");
 
 const createBlogCategory = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -23,13 +24,49 @@ const getBlogCategoryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id) throw new Error("Missing input");
 
-  const blogCategory = await BlogCategory.findById({ _id: id }).select(
-    "-createdAt -updatedAt -__v"
-  );
-  return res.status(200).json({
-    success: blogCategory ? true : false,
-    data: blogCategory ? blogCategory : "Can't found",
-  });
+  // const blogCategory = await BlogCategory.findById(id).select(
+  //   "-createdAt -updatedAt -__v"
+  // );
+
+  // return res.status(200).json({
+  //   success: blogCategory ? true : false,
+  //   data: blogCategory ? blogCategory : "Can't found",
+  // });
+
+  await BlogCategory.aggregate([
+    {
+      $match: {
+        _id: new mongoose.mongo.ObjectId(id), // lọc theo id của category
+      },
+    },
+    {
+      $lookup: {
+        from: "blogs", // tên collection trong mongo muốn join sang
+        localField: "_id", // trường khóa chính trong model BlogCategory
+        foreignField: "category", // foreignKey trong model Blogs
+        as: "blogs", // tên trường để lưu kết quả kết hợp
+      },
+    },
+    {
+      $project: {
+        __v: 0,
+        "blogs.category": 0,
+        "blogs.__v": 0,
+        "blogs.slug": 0,
+        "blogs.likes": 0,
+        "blogs.dislikes": 0,
+      },
+    },
+  ])
+    .then((category) => {
+      return res.status(200).json({
+        success: category ? true : false,
+        data: category ? category : "Can't found",
+      });
+    })
+    .catch((err) => {
+      throw new Error(err.message);
+    });
 });
 
 const getAllBlogCategories = asyncHandler(async (req, res) => {
@@ -39,7 +76,7 @@ const getAllBlogCategories = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: blogCategories ? true : false,
-    data: blogCategories ? blogCategories : "Can't not found",
+    data: blogCategories ? blogCategories : "Can't found",
   });
 });
 

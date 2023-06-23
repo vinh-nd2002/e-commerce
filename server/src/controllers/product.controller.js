@@ -106,7 +106,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
         success: response ? true : false,
         totals: totals,
         perPage: limit,
-        data: response ? response : "Can't not found",
+        data: response ? response : "Can't found",
       });
     })
     .catch((err) => {

@@ -37,7 +37,7 @@ const getAllCategories = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: categories ? true : false,
-    data: categories ? categories : "Can't not found",
+    data: categories ? categories : "Can't  found",
   });
 });
 
