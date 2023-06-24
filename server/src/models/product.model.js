@@ -9,7 +9,7 @@ var productSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      unique: true,
+      // unique: true,
       lowercase: true,
     },
     description: {
@@ -18,19 +18,22 @@ var productSchema = new mongoose.Schema(
       trim: true,
     },
     brand: {
-      type: String,
+      type: mongoose.Types.ObjectId,
       required: true,
+      ref: "Brand",
     },
     price: {
       type: Number,
       required: true,
     },
-    category: [
+    categories: [
       {
         type: mongoose.Types.ObjectId,
         ref: "Category",
+        required: true,
       },
     ],
+
     quantity: {
       type: Number,
       default: 0,
@@ -49,6 +52,7 @@ var productSchema = new mongoose.Schema(
     color: [
       {
         type: String,
+        required: true,
       },
     ],
     ratings: [

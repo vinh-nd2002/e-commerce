@@ -12,6 +12,12 @@ var categorySchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    brands: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Brand",
+      },
+    ],
   },
   {
     timestamps: true,
