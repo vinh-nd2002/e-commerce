@@ -259,6 +259,26 @@ const updateUserByAmin = asyncHandler(async (req, res) => {
   });
 });
 
+const updateUserAddress = asyncHandler(async (req, res) => {
+  const { uid } = req.user;
+  if (!uid || !req.body.address) throw new Error("Missing input");
+
+  const userUpdated = await User.findByIdAndUpdate(
+    { _id: uid },
+    {
+      $push: { address: req.body.address },
+    },
+    {
+      new: true,
+    }
+  ).select("-refreshToken -passwordChangeAt -wishlist -cart -password -__v");
+
+  return res.status(200).json({
+    success: userUpdated ? true : false,
+    mes: userUpdated ? "User update successful" : "Update user failed",
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -271,4 +291,5 @@ module.exports = {
   deleteUserById,
   updateUser,
   updateUserByAmin,
+  updateUserAddress,
 };

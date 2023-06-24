@@ -5,17 +5,19 @@ const router = require("express").Router();
 
 router.post("/register", userController.register);
 router.post("/login", userController.login);
-router.get("/current", verifyAccessToken, userController.getCurrent);
-router.post("/refresh-token", userController.refreshAccessToken);
-router.get("/logout", verifyAccessToken, userController.logout);
 router.get("/forgot-password", userController.forgotPassword);
 router.put("/reset-password", userController.resetPassword);
-router.get("/", [verifyAccessToken, isAdmin], userController.getAllUsers);
-router.put("/current", [verifyAccessToken], userController.updateUser);
-router.put("/:id", [verifyAccessToken, isAdmin], userController.updateUserByAmin);
-router.delete(
-  "/:id",
-  [verifyAccessToken, isAdmin],
-  userController.deleteUserById
-);
+router.post("/refresh-token", userController.refreshAccessToken);
+
+router.use(verifyAccessToken);
+
+router.get("/current", userController.getCurrent);
+router.get("/logout", userController.logout);
+router.put("/current", userController.updateUser);
+router.put("/current-address", userController.updateUserAddress);
+
+router.use(isAdmin);
+router.get("/", userController.getAllUsers);
+router.put("/:id", userController.updateUserByAmin);
+router.delete("/:id", userController.deleteUserById);
 module.exports = router;
