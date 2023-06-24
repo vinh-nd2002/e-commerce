@@ -1,5 +1,6 @@
 const blogController = require("./../controllers/blog.controller");
 const { verifyAccessToken, isAdmin } = require("../middlewares/jwt");
+const uploader = require("./../configs/cloudinary.config");
 
 const router = require("express").Router();
 
@@ -17,5 +18,10 @@ router.use(isAdmin);
 router.post("/", blogController.createBlog);
 router.delete("/:id", blogController.deleteBlogById);
 router.put("/:id", blogController.updateBlogById);
+router.put(
+  "/upload-image/:id",
+  uploader.single("image"),
+  blogController.uploadBlogImage
+);
 
 module.exports = router;

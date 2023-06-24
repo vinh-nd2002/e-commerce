@@ -3,15 +3,15 @@ const asyncHandler = require("express-async-handler");
 const slugifyTitle = require("./../utils/slug");
 
 const createProduct = asyncHandler(async (req, res) => {
-  const { title, description, price, brand, quantity, images } = req.body;
+  const { title, description, price, brand, quantity } = req.body;
   if (
     !title ||
     !description ||
     !price ||
     // !category ||
     !brand ||
-    !quantity ||
-    !images
+    !quantity
+    // !images
   ) {
     throw new Error("Missing input");
   }
@@ -205,6 +205,27 @@ const ratings = asyncHandler(async (req, res) => {
   });
 });
 
+const uploadProductImages = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id || !req.files) throw new Error("Missing inputs");
+  const response = await Product.findByIdAndUpdate(
+    id,
+    {
+      $push: {
+        images: req.files.map((ele) => ele.path),
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  return res.status(200).json({
+    success: response ? true : false,
+    mes: response ? "Product images update successful" : "Update image failed",
+  });
+
+});
+
 module.exports = {
   createProduct,
   getProductById,
@@ -212,4 +233,5 @@ module.exports = {
   deleteProductById,
   updateProductById,
   ratings,
+  uploadProductImages,
 };

@@ -9,3 +9,5 @@ refactor service vs controller
 refactor blog => author ref to User
 
 toJSON vs toObject in mongoose
+
+thanh toán online => dùng thư viện stripe
