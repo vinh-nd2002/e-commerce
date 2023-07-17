@@ -3,16 +3,8 @@ const asyncHandler = require("express-async-handler");
 const slugifyTitle = require("./../utils/slug");
 
 const createProduct = asyncHandler(async (req, res) => {
-  const { title, description, price, brand, quantity } = req.body;
-  if (
-    !title ||
-    !description ||
-    !price ||
-    // !category ||
-    !brand ||
-    !quantity
-    // !images
-  ) {
+  const { title, description, price, brand, quantity, categories } = req.body;
+  if (!title || !description || !price || !categories || !brand || !quantity) {
     throw new Error("Missing input");
   }
 
@@ -66,9 +58,9 @@ const getAllProducts = asyncHandler(async (req, res) => {
     formattedQueries.title = { $regex: queries.title, $options: "i" };
   }
 
-  let queryCommand = Product.find(formattedQueries).select(
-    "-createdAt -updatedAt -__v"
-  );
+  let queryCommand = Product.find(formattedQueries)
+    .populate("categories", "title")
+    .select("-createdAt -updatedAt -__v");
   // sort
   if (req.query.sort) {
     const sortBy = req.query.sort.split(",").join(" ");
@@ -117,12 +109,30 @@ const getAllProducts = asyncHandler(async (req, res) => {
 const deleteProductById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id) throw new Error("Missing input");
-  const response = await Product.findByIdAndDelete({ _id: id });
+  const response = await Product.findByIdAndUpdate(
+    { _id: id },
+    { isDelete: true },
+    { new: true }
+  );
   return res.status(200).json({
     success: response ? true : false,
     mes: response
       ? "Product has been deleted successfully"
       : "Delete product failed",
+  });
+});
+
+const undoProductById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+  const response = await Product.findByIdAndUpdate(
+    { _id: id },
+    { isDelete: false },
+    { new: true }
+  );
+  return res.status(200).json({
+    success: response ? true : false,
+    mes: response ? "Product update successful" : "Update product failed",
   });
 });
 
@@ -223,7 +233,6 @@ const uploadProductImages = asyncHandler(async (req, res) => {
     success: response ? true : false,
     mes: response ? "Product images update successful" : "Update image failed",
   });
-
 });
 
 module.exports = {
@@ -234,4 +243,5 @@ module.exports = {
   updateProductById,
   ratings,
   uploadProductImages,
+  undoProductById,
 };

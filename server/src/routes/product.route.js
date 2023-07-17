@@ -16,6 +16,7 @@ router.use(isAdmin);
 
 router.post("/", productController.createProduct);
 router.delete("/:id", productController.deleteProductById);
+router.put("/:id/undo", productController.undoProductById);
 router.put("/:id", productController.updateProductById);
 router.put(
   "/upload-images/:id",

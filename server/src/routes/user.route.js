@@ -17,7 +17,10 @@ router.put("/current", userController.updateUser);
 router.put("/current-address", userController.updateUserAddress);
 
 router.use(isAdmin);
+
 router.get("/", userController.getAllUsers);
-router.put("/:id", userController.updateUserByAmin);
+router.put("/:id", userController.updateUserByAdmin);
+router.put("/:id/undo", userController.updateUserByAdmin);
 router.delete("/:id", userController.deleteUserById);
+
 module.exports = router;

@@ -5,17 +5,21 @@ var userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
       trim: true,
+      required: [true, "Please enter your first name"],
     },
     lastName: {
       type: String,
-      required: true,
+      required: [true, "Please enter your last name"],
       trim: true,
+    },
+    username: {
+      type: String,
+      required: [true, "Please enter your username"],
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Please provide an email"],
       unique: true,
       trim: true,
     },
@@ -26,15 +30,19 @@ var userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      minlength: 8,
+      required: [true, "Please provide a password"],
+      validate(value) {
+        if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
+          throw new Error(
+            "Password must contain at least one letter and one number"
+          );
+        }
+      },
     },
     role: {
       type: String,
       default: "Customer",
-    },
-    cart: {
-      type: Array,
-      default: [],
     },
     address: [
       {
@@ -48,9 +56,9 @@ var userSchema = new mongoose.Schema(
         ref: "Product",
       },
     ],
-    isBlocked: {
+    isDelete: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     refreshToken: {
       type: String,

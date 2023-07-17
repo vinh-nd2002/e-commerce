@@ -9,11 +9,19 @@ const crypto = require("crypto");
 const sendMail = require("../utils/sendMail");
 
 const register = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password, numberPhone } = req.body;
+  const { firstName, lastName, email, password, numberPhone, username } =
+    req.body;
 
-  if (!firstName || !lastName || !email || !password || !numberPhone)
+  if (
+    !firstName ||
+    !lastName ||
+    !email ||
+    !password ||
+    !numberPhone ||
+    !username
+  )
     return res.status(400).json({
-      status: false,
+      success: false,
       mes: "Missing inputs",
     });
 
@@ -24,7 +32,7 @@ const register = asyncHandler(async (req, res) => {
   } else {
     const newUser = await User.create(req.body);
     return res.status(201).json({
-      status: newUser ? true : false,
+      success: newUser ? true : false,
       mes: newUser
         ? "New account registration successful"
         : "New account registration failed",
@@ -43,10 +51,12 @@ const login = asyncHandler(async (req, res) => {
   }
 
   const userData = await User.findOne({ email }).select(
-    "-createdAt -updatedAt -__v -passwordChangeAt -numberPhone -cart -address -wishlist"
+    "-createdAt -updatedAt -__v -passwordChangeAt -numberPhone -address -wishlist"
   );
-
   if (userData && (await userData.isCorrectPassword(password))) {
+    if(userData.isDelete){
+      throw new Error("Current account is locked. Please contact admin.");
+    }
     // do findOne của mongo là plain object của mongo nên phải convert sang object thuần
     const { password, role, refreshToken, ...response } = userData.toObject();
 
@@ -88,11 +98,11 @@ const getCurrent = asyncHandler(async (req, res) => {
   const { uid } = req.user;
 
   const currentUser = await User.findById({ _id: uid }).select(
-    "-updatedAt -refreshToken -passwordChangeAt -wishlist  -cart -password -__v"
+    "-updatedAt -refreshToken -passwordChangeAt -wishlist  -password -__v"
   );
 
   return res.status(200).json({
-    status: true,
+    success: true,
     data: !!currentUser ? currentUser : "User can't found",
   });
 });
@@ -163,6 +173,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   if (!email) throw new Error("Missing email");
   const user = await User.findOne({ email });
   if (!user) throw new Error("User not found");
+  if(user.isDelete) throw new Error("Login information is incorrect. Please check again");
   const resetToken = user.createPasswordChangedToken();
   await user.save();
 
@@ -176,14 +187,12 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const result = await sendMail(data);
   return res.status(200).json({
     success: true,
-    result,
+    mes: result,
   });
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
   const { password, token } = req.body;
-  console.log("password>>>>", password);
-  console.log("token>>>>", token);
   if (!password || !token) throw new Error("Missing input");
   const passwordResetToken = crypto
     .createHash("sha256")
@@ -210,7 +219,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select(
-    "-updatedAt -refreshToken -passwordChangeAt -wishlist -cart -password -__v"
+    "-updatedAt -refreshToken -passwordChangeAt -wishlist -password -__v"
   );
   if (!users) throw new Error("List users can't found");
   return res.status(200).json({
@@ -226,7 +235,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
   const userUpdated = await User.findByIdAndUpdate({ _id: uid }, req.body, {
     new: true,
-  }).select("-refreshToken -passwordChangeAt -wishlist -cart -password -__v");
+  }).select("-refreshToken -passwordChangeAt -wishlist -password -__v");
 
   return res.status(200).json({
     success: userUpdated ? true : false,
@@ -238,20 +247,42 @@ const deleteUserById = asyncHandler(async (req, res) => {
   if (!id) throw new Error("Missing input");
   if (id === req.user.uid)
     throw new Error("Can't remove myself from the system");
-  const response = await User.findByIdAndDelete({ _id: id });
+  const response = await User.findByIdAndUpdate(
+    { _id: id },
+    { isDelete: true },
+    { new: true }
+  );
+  // const response = await User.findByIdAndDelete({ _id: id });
   return res.status(200).json({
     success: response ? true : false,
     mes: response ? "User has been deleted successfully" : "Delete user failed",
   });
 });
 
-const updateUserByAmin = asyncHandler(async (req, res) => {
+const updateUserByAdmin = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id || Object.keys(req.body).length === 0)
     throw new Error("Missing input");
   const userUpdated = await User.findByIdAndUpdate({ _id: id }, req.body, {
     new: true,
-  }).select("-refreshToken -passwordChangeAt -wishlist -cart -password -__v");
+  }).select("-refreshToken -passwordChangeAt -wishlist -password -__v");
+
+  return res.status(200).json({
+    success: userUpdated ? true : false,
+    mes: userUpdated ? "User update successful" : "Update user failed",
+  });
+});
+
+const undoUserByAdmin = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+  const userUpdated = await User.findByIdAndUpdate(
+    { _id: id },
+    { idDelete: false },
+    {
+      new: true,
+    }
+  );
 
   return res.status(200).json({
     success: userUpdated ? true : false,
@@ -271,7 +302,7 @@ const updateUserAddress = asyncHandler(async (req, res) => {
     {
       new: true,
     }
-  ).select("-refreshToken -passwordChangeAt -wishlist -cart -password -__v");
+  ).select("-refreshToken -passwordChangeAt -wishlist -password -__v");
 
   return res.status(200).json({
     success: userUpdated ? true : false,
@@ -290,6 +321,7 @@ module.exports = {
   getAllUsers,
   deleteUserById,
   updateUser,
-  updateUserByAmin,
+  updateUserByAdmin,
   updateUserAddress,
+  undoUserByAdmin,
 };

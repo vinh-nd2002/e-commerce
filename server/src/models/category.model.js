@@ -18,6 +18,10 @@ var categorySchema = new mongoose.Schema(
         ref: "Brand",
       },
     ],
+    isDelete: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

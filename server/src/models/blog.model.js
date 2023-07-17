@@ -1,3 +1,7 @@
+// Import the BlogCategory model
+const refValidator = require("../utils/checkExistsModel");
+const BlogCategory = require("./blogCategory.model");
+
 const mongoose = require("mongoose");
 var blogSchema = new mongoose.Schema(
   {
@@ -19,6 +23,11 @@ var blogSchema = new mongoose.Schema(
     category: {
       type: mongoose.Types.ObjectId,
       ref: "BlogCategory",
+      required: true,
+      validate: {
+        validator: (value) => refValidator(BlogCategory, value),
+        message: "Category does not exist",
+      },
     },
     numberViews: {
       type: Number,
@@ -45,6 +54,10 @@ var blogSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    isDelete: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -24,11 +24,14 @@ const getBlogById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id) throw new Error("Missing input");
 
-  const blog = await Blog.findByIdAndUpdate(id, {
-    $inc: {
-      numberViews: 1,
-    },
-  })
+  const blog = await Blog.findOneAndUpdate(
+    { _id: id, isDelete: false },
+    {
+      $inc: {
+        numberViews: 1,
+      },
+    }
+  )
     .populate("category", "title")
     .populate("author", "firstName lastName")
     .select("-createdAt -updatedAt -__v");
@@ -53,10 +56,28 @@ const getAllBlogs = asyncHandler(async (req, res) => {
 const deleteBlogById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id) throw new Error("Missing input");
-  const response = await Blog.findByIdAndDelete({ _id: id });
+  const response = await Blog.findByIdAndUpdate(
+    { _id: id },
+    { isDelete: true },
+    { new: true }
+  );
   return res.status(200).json({
     success: response ? true : false,
     mes: response ? "Blog has been deleted successfully" : "Delete Blog failed",
+  });
+});
+
+const undoBlogById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+  const response = await Blog.findByIdAndUpdate(
+    { _id: id },
+    { isDelete: false },
+    { new: true }
+  );
+  return res.status(200).json({
+    success: response ? true : false,
+    mes: blogUpdated ? "Blog undo successful" : "Undo blog failed",
   });
 });
 
@@ -142,8 +163,14 @@ const dislikeBlog = asyncHandler(async (req, res) => {
   const { bid } = req.params;
   if (!bid) throw new Error("Missing inputs");
 
-  const blog = await Blog.findById(bid);
+  const blog = await Blog.findOne({ _id: bid, isDelete: false });
 
+  if (!blog) {
+    return res.status(200).json({
+      success: false,
+      mes: "Can't found this blog",
+    });
+  }
   var response;
 
   // the user disliked the post
@@ -224,4 +251,5 @@ module.exports = {
   likeBlog,
   dislikeBlog,
   uploadBlogImage,
+  undoBlogById,
 };

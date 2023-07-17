@@ -4,7 +4,7 @@ const Category = require("./category.model");
 const BlogCategory = require("./blogCategory.model");
 const Blog = require("./blog.model");
 const Brand = require("./brand.model");
-const Coupon = require("./coupon.model");
+const Order = require("./order.model");
 
 module.exports = {
   User,
@@ -13,5 +13,5 @@ module.exports = {
   BlogCategory,
   Blog,
   Brand,
-  Coupon,
+  Order
 };
