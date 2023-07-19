@@ -39,6 +39,132 @@ const createOrder = asyncHandler(async (req, res) => {
   });
 });
 
-module.export = {
+const cancelOrder = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+  const buyer = req.user;
+
+  const response = await Order.findById(id);
+  if (!response) throw new Error("Order not found");
+  if (response.buyer._id !== buyer.uid)
+    throw new Error("You can't cancel order");
+  if (response.status === "Not Processed" || response.status === "Processing")
+    response.status = "Cancelled";
+  else
+    throw new Error(
+      "This order cannot be canceled, it has been shipped for delivery"
+    );
+  response = response.save();
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response : "Can't cancel order",
+  });
+});
+
+const getOrderById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+  const user = req.user;
+
+  const response = await Order.findById(id);
+  if (!response) throw new Error("Order not found");
+  if (response.buyer._id !== user.uid || user.role !== "Admin")
+    throw new Error("You do not have permission to view this order");
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response : "Can't found order",
+  });
+});
+
+const getAllOrders = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+  const user = req.user;
+
+  const response = [];
+  if (user.role === "Admin") {
+    response = await Order.find();
+  } else {
+    response = await Order.find({ buyer: user.uid, isDelete: false });
+  }
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response : "Can't found order",
+  });
+});
+
+const updateOrderById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+  const { status } = req.body;
+
+  if (status === "Delivered") {
+    req.body.deliveredAt = Date.now();
+    req.body.isDelivered = true;
+  }
+  const response = await Order.findByIdAndUpdate(id, req.body, { new: true });
+
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response : "Can't update order",
+  });
+});
+
+const paymentOrder = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+
+  const response = await Order.findByIdAndUpdate(
+    id,
+    { paidAt: Date.now(), isPaid: true },
+    { new: true }
+  );
+
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response : "Can't payment order",
+  });
+});
+
+const deleteOrderById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+
+  const response = await Order.findByIdAndUpdate(
+    id,
+    { isDelete: true },
+    { new: true }
+  );
+
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response : "Can't delete order",
+  });
+});
+
+const undoOrderById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) throw new Error("Missing input");
+
+  const response = await Order.findByIdAndUpdate(
+    id,
+    { isDelete: false },
+    { new: true }
+  );
+
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response : "Can't undo order",
+  });
+});
+
+module.exports = {
   createOrder,
+  cancelOrder,
+  getOrderById,
+  getAllOrders,
+  updateOrderById,
+  paymentOrder,
+  deleteOrderById,
+  undoOrderById,
 };

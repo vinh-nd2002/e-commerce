@@ -50,12 +50,6 @@ var userSchema = new mongoose.Schema(
         default: [],
       },
     ],
-    wishlist: [
-      {
-        type: mongoose.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
     isDelete: {
       type: Boolean,
       default: false,
@@ -64,13 +58,13 @@ var userSchema = new mongoose.Schema(
       type: String,
     },
     passwordChangeAt: {
-      type: String,
+      type: Date,
     },
     passwordResetToken: {
-      type: String,
+      type: Date,
     },
     passwordResetExpire: {
-      type: String,
+      type: Date,
     },
   },
   {

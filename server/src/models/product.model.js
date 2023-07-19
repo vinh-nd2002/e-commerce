@@ -1,19 +1,19 @@
 const mongoose = require("mongoose");
-const Brand = require("./brand.model");
-const Category = require("./category.model");
+// const Brand = require("./brand.model");
+// const Category = require("./category.model");
 
-// Define a validator function for the categories array
-var categoriesValidator = async function (value) {
-  // Loop through each element in the array
-  for (let category of value) {
-    // Check if the category exists in the database using refValidator
-    var isValid = await refValidator(Category, category);
-    // If not valid, return false
-    if (!isValid) return false;
-  }
-  // If all elements are valid, return true
-  return true;
-};
+// // Define a validator function for the categories array
+// var categoriesValidator = async function (value) {
+//   // Loop through each element in the array
+//   for (let category of value) {
+//     // Check if the category exists in the database using refValidator
+//     var isValid = await refValidator(Category, category);
+//     // If not valid, return false
+//     if (!isValid) return false;
+//   }
+//   // If all elements are valid, return true
+//   return true;
+// };
 
 var productSchema = new mongoose.Schema(
   {
@@ -40,10 +40,10 @@ var productSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "Brand",
       required: true,
-      validate: {
-        validator: (value) => refValidator(Brand, value),
-        message: "Brand does not exist",
-      },
+      // validate: {
+      //   validator: (value) => refValidator(Brand, value),
+      //   message: "Brand does not exist",
+      // },
     },
     price: {
       type: Number,
@@ -54,10 +54,10 @@ var productSchema = new mongoose.Schema(
         type: mongoose.Types.ObjectId,
         ref: "Category",
         required: true,
-        validate: {
-          validator: categoriesValidator,
-          message: "Category does not exist",
-        },
+        // validate: {
+        //   validator: categoriesValidator,
+        //   message: "Category does not exist",
+        // },
       },
     ],
 
